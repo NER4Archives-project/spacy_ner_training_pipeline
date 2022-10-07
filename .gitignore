@@ -1,3 +1,11 @@
+# spaCy directories
+corpus/
+training/
+packages/
+hub/
+assets/
+project.lock
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -109,6 +117,9 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+
+# IDE
+.idea/
 
 # Spyder project settings
 .spyderproject

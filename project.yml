@@ -1,0 +1,186 @@
+title: "NER4Archives - *named entity recognition for archives* - INRIA/Archives nationales spaCy project"
+description: "
+This spaCy project downloading and converting source data and training 
+a named entity recognition model. The project uses the NER4Archives (N4A) corpus, which was constructed semi-automatically. 
+The main advantage of this corpus is that it's freely available, so the data can be downloaded as a project asset. 
+The N4A corpus is distributed in CONLL format with IOB schema, a fairly common text encoding for sequence data. 
+The `corpus` in assets/ is splitting into training, development and testing; then uses 
+`spacy convert` to convert them into spaCy's binary format. You can then create/edit the config to try out different settings, 
+and trigger training with a new train subcommand.
+
+
+## ⚠️ Please read the steps carefully before using and launching this spaCy project ⚠️
+
+Go to [INFO.md](./INFO.md)
+
+## Important ressources
+
+- :octocat: [Ner4archives corpus](https://github.com/NER4Archives-project/Corpus_TrainingData) - N4A Corpus version
+
+- 🤗 [Ner4archives Hugging Face Hub organisation](https://huggingface.co/ner4archives) - Free model hosting for N4A NER pipeline models  
+
+"
+
+vars:
+  name: "ner4archives_v3_default" # Change before train (if necessary)
+  version: "0.0.0" # Change before train (if necessary)
+  organisation: "ner4archives"
+  lang: "fr"
+  vectors_model: "fr_core_news_lg"
+  # gpu: -1 for no GPU use
+  gpu: -1
+  # add new pipelines here
+  cpu_efficiency_config: "cpu_efficiency_config.cfg"
+  cpu_accuracy_vectors_lg_config: "cpu_accuracy_vectors_lg_config.cfg"
+  gpu_trf_camembert_config: "gpu_trf_camembert_config.cfg"
+
+
+# These are the directories that the project needs. The project CLI will make
+# sure that they always exist.
+directories: ["assets",
+              "training",
+              "configs",
+              "corpus",
+              "scripts",
+              "hub",
+              "packages"]
+
+
+# Assets that should be downloaded or available in the directory. We're shipping
+# them with the project, so they won't have to be downloaded. But the
+# 'project assets' command still lets you verify that the checksums match.
+assets:
+  - dest: "assets/"
+    git:
+      repo: "git@github.com:NER4Archives-project/Corpus_TrainingData.git"
+      branch: "main"
+      path: "n4a_annotated_corpus"
+    description: "Fetch corpus from GitHub repo NER4Archives-project/Corpus_TrainingData/ project using SSH auth."
+
+
+# Workflows are sequences of commands (see below) executed in order. You can
+# run them via "spacy project run [workflow]". If a commands's inputs/outputs
+# haven't changed, it won't be re-run.
+workflows:
+  cpu_train_default:
+    - corpus
+    - train
+    - evaluate
+
+  cpu_train_vectors:
+    - corpus
+    - train-with-vectors
+    - evaluate
+
+  gpu_train_trf_camembert-base:
+    - corpus
+    - train-with-camembert-base-fr
+    - evaluate
+
+
+commands:
+  - name: install
+    help: "Install dependencies, log in to Hugging Face (use the first time you init the project), initialize git lfs, download vectors model (run first time)"
+    script:
+      - "pip install -r requirements.txt"
+      - "huggingface-cli login"
+      - "git lfs install"
+      - "huggingface-cli lfs-enable-largefiles ."
+      - "python -m spacy download ${vars.vectors_model}"
+
+  - name: corpus
+    help: "Extract, partition (train, dev & test - Default: 0.6, 0.2, 0.2) and convert the data from zip to spaCy's format"
+    # Make sure we specify the branch in the command string, so that the
+    # caching works correctly.
+    script:
+      - "python scripts/extract_data.py assets/output_annotated_corpus.zip assets/iob"
+      - "python -m spacy convert assets/iob corpus -c ner -n 10"
+    deps:
+      - "assets/"
+      - "scripts/extract_data.py"
+    outputs:
+      - "corpus/train.spacy"
+      - "corpus/dev.spacy"
+      - "corpus/test.spacy"
+
+  ################## TRAINING MODEL COMMANDS ########################
+  # CPU: default CNN
+  - name: train
+    help: "Train default NER pipeline (efficiency) - optimized for CPU"
+    script:
+      - "python -m spacy debug config configs/${vars.cpu_efficiency_config} --paths.train corpus/train.spacy --paths.dev corpus/dev.spacy"
+      - "python -m spacy debug data configs/${vars.cpu_efficiency_config} --paths.train corpus/train.spacy --paths.dev corpus/dev.spacy"
+      - "python -m spacy train configs/${vars.cpu_efficiency_config} -o training/ --gpu-id ${vars.gpu} --paths.train corpus/train.spacy --paths.dev corpus/dev.spacy --verbose"
+    deps:
+      - "corpus/train.spacy"
+      - "corpus/dev.spacy"
+      - "configs/${vars.cpu_efficiency_config}"
+    outputs:
+      - "training/model-best"
+
+  # CPU: default CNN + fr_core_news_lg vectors
+  - name: train-with-vectors
+    help: "Train default NER pipeline (accuracy) with fr_core_news_lg vectors - optimized for CPU"
+    script:
+      - "python -m spacy debug config configs/${vars.cpu_accuracy_vectors_lg_config} --paths.train corpus/train.spacy --paths.dev corpus/dev.spacy"
+      - "python -m spacy debug data configs/${vars.cpu_accuracy_vectors_lg_config} --paths.train corpus/train.spacy --paths.dev corpus/dev.spacy"
+      - "python -m spacy train configs/${vars.cpu_accuracy_vectors_lg_config} -o training/ --gpu-id ${vars.gpu} --paths.train corpus/train.spacy --paths.dev corpus/dev.spacy --verbose"
+    deps:
+      - "corpus/train.spacy"
+      - "corpus/dev.spacy"
+      - "configs/${vars.cpu_accuracy_vectors_lg_config}"
+    outputs:
+      - "training/model-best"
+
+  # GPU: Trf model (camembert-base)
+  - name: train-with-camembert-base-fr
+    help: "Train transformer (camembert-base) NER pipeline - optimized for GPU"
+    script:
+      - "python -m spacy debug config configs/${vars.gpu_trf_camembert_config} --paths.train corpus/train.spacy --paths.dev corpus/dev.spacy"
+      - "python -m spacy debug data configs/${vars.gpu_trf_camembert_config} --paths.train corpus/train.spacy --paths.dev corpus/dev.spacy"
+      - "python -m spacy train configs/${vars.gpu_trf_camembert_config} -o training/ --gpu-id ${vars.gpu} --paths.train corpus/train.spacy --paths.dev corpus/dev.spacy --verbose"
+    deps:
+      - "corpus/train.spacy"
+      - "corpus/dev.spacy"
+      - "configs/${vars.gpu_trf_camembert_config}"
+    outputs:
+      - "training/model-best"
+
+  # OK
+  - name: evaluate
+    help: "Evaluate on the test data and save the metrics"
+    script:
+      - "python -m spacy evaluate ./training/model-best ./corpus/test.spacy --output ./training/metrics.json --gpu-id ${vars.gpu}"
+    deps:
+      - "training/model-best"
+      - "corpus/test.spacy"
+    outputs:
+      - "training/metrics.json"
+
+
+  ################## OPTIONAL COMMAND BEFORE OR AFTER TRAINING PROCESS ########################
+  - name: package
+    help: "Package the trained model so it can be installed"
+    script:
+      - "python -m spacy package training/model-best packages --name ${vars.name} --version ${vars.version} --build wheel"
+    deps:
+      - "training/model-best"
+    outputs_no_cache:
+      - "packages/fr_${vars.name}-${vars.version}/dist/fr_${vars.name}-${vars.version}-py3-none-any.whl"
+
+  - name: push_to_hub
+    help: "Push the model to the Hub"
+    script:
+       - "python scripts/push_to_hub.py packages/fr_${vars.name}-${vars.version}/dist/fr_${vars.name}-${vars.version}-py3-none-any.whl ${vars.organisation}"
+    deps:
+      - "packages/fr_${vars.name}-${vars.version}"
+
+  - name: generate-documentation
+    help: "(Re-)generate project documentation."
+    script:
+      - "python -m spacy project document --output README.md"
+
+  - name: clean
+    help: "Remove intermediate files"
+    script:
+      - "python scripts/clean_file.py"

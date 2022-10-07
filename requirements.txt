@@ -1,0 +1,2 @@
+huggingface-hub==0.10.0
+spacy-transformers==1.1.8
