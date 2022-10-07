@@ -1,6 +1,6 @@
 <!-- SPACY PROJECT: AUTO-GENERATED DOCS START (do not remove) -->
 
-# 🪐 spaCy Project: NER4Archives - *named entity recognition for archives* - INRIA/Archives nationales spaCy project
+# 🪐 spaCy Project: NER4Archives - *named entity recognition for archives* - INRIA/Archives nationales
 
  This spaCy project downloading and converting source data and training a named entity recognition model. The project uses the NER4Archives (N4A) corpus, which was constructed semi-automatically. The main advantage of this corpus is that it's freely available, so the data can be downloaded as a project asset.
 ## The NER4Archives corpus
