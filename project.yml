@@ -22,7 +22,7 @@ Go to [INFO.md](./INFO.md)
 "
 
 vars:
-  name: "ner4archives_v3_default" # Change before train (if necessary)
+  name: "ner4archives_V3_default" # Change before train (if necessary)
   version: "0.0.0" # Change before train (if necessary)
   organisation: "ner4archives"
   lang: "fr"
@@ -173,7 +173,7 @@ commands:
     script:
        - "python scripts/push_to_hub.py packages/fr_${vars.name}-${vars.version}/dist/fr_${vars.name}-${vars.version}-py3-none-any.whl ${vars.organisation}"
     deps:
-      - "packages/fr_${vars.name}-${vars.version}"
+       - "packages/fr_${vars.name}-${vars.version}"
 
   - name: generate-documentation
     help: "(Re-)generate project documentation."
