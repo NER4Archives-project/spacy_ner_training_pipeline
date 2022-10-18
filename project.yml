@@ -134,7 +134,7 @@ commands:
 
   # GPU: Trf model (camembert-base)
   - name: train-with-camembert-base-fr
-    help: "Train transformer (camembert-base) NER pipeline - optimized for GPU"
+    help: "Train transformer (camembert-base) NER pipeline - optimized for GPU (use cloud computing to GPU access Cf. [INFO.md](./INFO.md))"
     script:
       - "python -m spacy debug config configs/${vars.gpu_trf_camembert_config} --paths.train corpus/train.spacy --paths.dev corpus/dev.spacy"
       - "python -m spacy debug data configs/${vars.gpu_trf_camembert_config} --paths.train corpus/train.spacy --paths.dev corpus/dev.spacy"

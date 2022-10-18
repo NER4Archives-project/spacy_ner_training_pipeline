@@ -1,8 +1,8 @@
 # Steps to training a new NER pipeline 
 
-### Prerequisite
+## Prerequisite
 
-To send the models to Hugging Face (`step 7`) you must have an [HF account](https://huggingface.co/), have a `write` on HF token, and be part of the `ner4archives` HF organisation.
+To send the models to Hugging Face (`step 7`), you must have an [HF account](https://huggingface.co/), have an HF token with the `write` right (on the HF account, display the `settings` section), and be part of the HF `ner4archives` organization.
 
 ### 1. Installation (to be done once)
 
@@ -57,14 +57,14 @@ spacy project assets
 
 After `step 3.` and before training a new model it is important to check the variables to name the model for example:
 
-In `project.yml` got to `vars` section and change `name` var with correct model name.
+In `project.yml` go to `vars` section and change `name` var with correct model name.
 
 model naming conventions (all in lowercase !):
 
 `ner4archives_(corpus version)_(pipeline type)`
 
 - `corpus version`: version of corpus downloaded in `assets/`
-- `pipeline type`: can be (except if you create a new pipeline):
+- `pipeline type`: can be (except if you create a [new pipeline](#how-to-create-a-new-pipeline-for-the-project?)):
    - `default` if cpu_train_default; 
    - `with_vectors` if cpu_train_vectors; 
    - `trf_camembert_base` if gpu_train_trf_camembert-base
@@ -76,7 +76,7 @@ After `step 4.`, on your local computer (except if you GPU), use CPU pipelines:
 - cpu_train_default
 - cpu_train_vectors
 
-For GPU pipelines use cloud computing solution like Google colab notebook and use this file: [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)]() (WIP)
+For GPU pipelines use cloud computing solution like Google colab notebook and use this file: [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1nn9LxeYfpjd9GJjyTh1tiCLbiTqo2zO6?usp=sharing)
 
 To start model training:
 
@@ -116,5 +116,27 @@ When the models are well versioned, you can clean up the working folders with:
 spacy project run clean
 ```
 
+# How to create a new pipeline for the project?
 
-# How to create a new pipeline for the project? (WIP)
+This section describes how to add a new model architecture for training to the `project.yml` file.
+
+1) Create a new config in [configs/](./configs)
+2) In `project.yml`, in section `vars` add your new pipeline like `cpu_efficiency_config` with path to the config file (.cfg)
+3) In `project.yml`, in section `workflows` add your new pipeline (list of subcommands to chain)
+4) In `project.yml`, in section `TRAINING MODEL COMMANDS` add a running command section like this: 
+
+```
+  - name: <Choose a name for your train command>
+    help: "<Choose a description your train command>"
+    script:
+      - "python -m spacy debug config configs/${vars.<replace with var name of config path>} --paths.train corpus/train.spacy --paths.dev corpus/dev.spacy"
+      - "python -m spacy debug data configs/${vars.<replace with var name of config path>} --paths.train corpus/train.spacy --paths.dev corpus/dev.spacy"
+      - "python -m spacy train configs/${vars..<replace with var name of config path>} -o training/ --gpu-id ${vars.gpu} --paths.train corpus/train.spacy --paths.dev corpus/dev.spacy --verbose"
+    deps:
+      - "corpus/train.spacy"
+      - "corpus/dev.spacy"
+      - "configs/${vars.<replace with var name of config path>}"
+    outputs:
+      - "training/model-best"
+```
+5) Now you can start your new training workflow `$ spacy project run <name of new workflows>` and all the referenced subcommands will execute one by one.

@@ -1,16 +1,14 @@
 <!-- SPACY PROJECT: AUTO-GENERATED DOCS START (do not remove) -->
 
-# 🪐 spaCy Project: NER4Archives - *named entity recognition for archives* - INRIA/Archives nationales
+# 🪐 spaCy Project: NER4Archives - *named entity recognition for archives* - INRIA/Archives nationales spaCy project
 
- This spaCy project downloading and converting source data and training a named entity recognition model. The project uses the NER4Archives (N4A) corpus, which was constructed semi-automatically. The main advantage of this corpus is that it's freely available, so the data can be downloaded as a project asset.
-## The NER4Archives corpus
-The N4A corpus is distributed in CONLL format with IOB schema, a fairly common text encoding for sequence data. The `corpus` in assets/ is splitting into training, development and testing; then uses `spacy convert` to convert them into spaCy's binary format. You can then create/edit the config to try out different settings, and trigger training with the `train` subcommand. The project contains the last training model and use the last version of corpus. Models are available with meta on Hugging Face organisation (Free model hosting).
+ This spaCy project downloading and converting source data and training a named entity recognition model. The project uses the NER4Archives (N4A) corpus, which was constructed semi-automatically. The main advantage of this corpus is that it's freely available, so the data can be downloaded as a project asset. The N4A corpus is distributed in CONLL format with IOB schema, a fairly common text encoding for sequence data. The `corpus` in assets/ is splitting into training, development and testing; then uses `spacy convert` to convert them into spaCy's binary format. You can then create/edit the config to try out different settings, and trigger training with a new train subcommand.
 
 ## ⚠️ Please read the steps carefully before using and launching this spaCy project ⚠️
 Go to [INFO.md](./INFO.md)
 ## Important ressources
 - :octocat: [Ner4archives corpus](https://github.com/NER4Archives-project/Corpus_TrainingData) - N4A Corpus version
-- 🤗 [Ner4archives Hugging Face Hub organisation](https://huggingface.co/ner4archives) - N4A NER pipeline models
+- 🤗 [Ner4archives Hugging Face Hub organisation](https://huggingface.co/ner4archives) - Free model hosting for N4A NER pipeline models
 
 
 ## 📋 project.yml
@@ -31,7 +29,7 @@ Commands are only re-run if their inputs have changed.
 | `corpus` | Extract, partition (train, dev & test - Default: 0.6, 0.2, 0.2) and convert the data from zip to spaCy's format |
 | `train` | Train default NER pipeline (efficiency) - optimized for CPU |
 | `train-with-vectors` | Train default NER pipeline (accuracy) with fr_core_news_lg vectors - optimized for CPU |
-| `train-with-camembert-base-fr` | Train transformer (camembert-base) NER pipeline - optimized for GPU |
+| `train-with-camembert-base-fr` | Train transformer (camembert-base) NER pipeline - optimized for GPU (use cloud computing to GPU access Cf. [INFO.md](./INFO.md)) |
 | `evaluate` | Evaluate on the test data and save the metrics |
 | `package` | Package the trained model so it can be installed |
 | `push_to_hub` | Push the model to the Hub |
